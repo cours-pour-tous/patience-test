@@ -153,7 +153,10 @@
     }
 
     /* 🎧 هذا السطر يُفعّل الصوت في المتصفح بعد أول نقرة فقط */
-    
+    document.addEventListener("click", () => {
+      playBeep();
+    }, { once: true });
+
     /* 🖥️ تفعيل وضع ملء الشاشة */
     async function enterImmersiveMode() {
       try {
