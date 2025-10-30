@@ -82,12 +82,12 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 900;  // تردد الصفير
-        gain.gain.value = 0.7;     // مستوى الصوت (خفيف)
+        osc.frequency.value = 800;  // تردد الصفير
+        gain.gain.value = 0.5;     // مستوى الصوت (خفيف)
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.2); // مدة الصوت نصف ثانية تقريبا
+        osc.stop(ctx.currentTime + 0.7); // مدة الصوت نصف ثانية تقريبا
     }
 document.addEventListener("click", () => {
   playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
