@@ -109,9 +109,6 @@
       if (!running) return;
       remaining *= 2;
       playBeep(); // ⬅️ تشغيل الصوت عند التفاعل
-      document.addEventListener("click", () => {
-  playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
-});
     }
 
     function attachDetectors() {
