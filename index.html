@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>قائمة الدروس — تجربة</title>
+  <style>
+    :root{font-family: system-ui, Tahoma, Arial;}
+    body{margin:0;background:#f7f7f7;color:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .card{width:min(980px,96vw);background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(2,6,23,0.08);padding:24px}
+    h1{margin:0 0 12px;font-size:22px}
+    .lessons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .lesson{padding:12px;border-radius:10px;border:1px solid #eef2ff;background:linear-gradient(180deg,#fff,#fbfdff);cursor:pointer}
+    .lesson h3{margin:0 0 6px;font-size:16px}
+    .lesson p{margin:0;font-size:13px;color:#555}
+    .controls{display:flex;gap:10px;align-items:center;margin-top:18px}
+    button{padding:10px 14px;border-radius:8px;border:0;background:#0b5fff;color:white;font-weight:600;cursor:pointer}
+    button.secondary{background:#666}
+    footer{margin-top:14px;font-size:12px;color:#666}
+
+    /* full-screen blackout overlay */
+    #blackout{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:9999}
+    #blackout.hide-cursor{cursor:none}
+    #counter{display:none}
+    #smallmsg{display:none}
+    #resultArea{display:none}
+  </style>
+</head>
+<body>
+  <div class="card" id="mainCard">
+    <h1>قائمة دروس — كافت الدروس</h1>
+
+    <div class="lessons">
+      <div class="lesson"><h3>الدرس 1 — مقدمة عامة</h3><p>مبادئ أساسية ومقدمة عن الموضوع.</p></div>
+      <div class="lesson"><h3>الدرس 2 — أدوات العمل</h3><p>شرح الأدوات والبيئة المطلوبة.</p></div>
+      <div class="lesson"><h3>الدرس 3 — خطوات تنفيذية</h3><p>سير العمل خطوة بخطوة.</p></div>
+      <div class="lesson"><h3>الدرس 4 — نصائح وملاحظات</h3><p>نصائح للتعامل مع المشكلات الشائعة.</p></div>
+    </div>
+
+    <div class="controls">
+      <button id="start">افتح الدرس</button>
+      <button id="reset" class="secondary">تحديث القائمة</button>
+    </div>
+
+    <footer>صفحة تبدو كقائمة دروس عادية — تحتوي تجربة مخفية لاختبار الصبر بوضع ملء الشاشة.</footer>
+  </div>
+
+  <div id="blackout" class="hide-cursor">
+    <div id="smallmsg"></div>
+    <div id="counter">0</div>
+  </div>
+
+  <div id="resultArea" class="result">
+    <div id="resultText"></div>
+  </div>
+
+  <script>
+    // Safety note: A web page cannot disable OS-level shortcuts (Win key, Ctrl+Alt+Del, Alt+Tab).
+    // This site uses Fullscreen + Pointer Lock for an immersive effect, hides timers, doubles remaining time on interactions,
+    // and has a hidden secret exit (Ctrl+Q). It does NOT modify system files.
+
+    const startBtn = document.getElementById('start');
+    const resetBtn = document.getElementById('reset');
+    const blackout = document.getElementById('blackout');
+
+    // hidden settings
+    let baseDuration = 30; // default seconds; can be configured via URL ?t=SECONDS
+    let remaining = baseDuration;
+    let timer = null;
+    let running = false;
+
+    // load config from URL (secret)
+    (function(){
+      try{
+        const params = new URLSearchParams(location.search);
+        const t = parseInt(params.get('t'));
+        if(Number.isFinite(t) && t>0) baseDuration = t;
+      }catch(e){}
+    })();
+
+    function enterFullscreen(){
+      try{
+        if(document.documentElement.requestFullscreen)
+          document.documentElement.requestFullscreen({navigationUI:'hide'});
+      }catch(e){}
+    }
+
+    function requestPointerLock(){
+      try{
+        if(blackout.requestPointerLock) blackout.requestPointerLock();
+      }catch(e){}
+    }
+
+    function exitPointerLock(){
+      try{ if(document.exitPointerLock) document.exitPointerLock(); }catch(e){}
+    }
+
+    function TurnOffMonitorViaCSS(){
+      // Can't actually power off the monitor from web, so rely on full blackout and pointer lock.
+      // Some browsers may allow screen wake locks but not power off.
+    }
+
+    function onUserAction(e){
+      if(!running) return;
+      // double remaining immediately on any interaction
+      remaining = remaining * 2;
+      // keep user unaware: no visible feedback
+    }
+
+    function attachDetection(){
+      ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(evt=>{
+        document.addEventListener(evt, onUserAction, {passive:true});
+      });
+      document.addEventListener('keydown', secretExitHandler);
+      document.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    function detachDetection(){
+      ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(evt=>{
+        document.removeEventListener(evt, onUserAction);
+      });
+      document.removeEventListener('keydown', secretExitHandler);
+      document.removeEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    function secretExitHandler(e){
+      // SECRET: Ctrl+Q exits the experiment immediately (hidden)
+      if(e.ctrlKey && e.key.toLowerCase() === 'q'){
+        e.preventDefault();
+        clearInterval(timer);
+        endBlackout(true);
+      }
+      // attempt to block some browser keys
+      const blocked = ['F11','F5','F12','Home','End','PageUp','PageDown'];
+      if(blocked.includes(e.key)){
+        try{ e.preventDefault(); }catch(ex){}
+      }
+    }
+
+    function startBlackout(){
+      running = true;
+      blackout.style.display = 'flex';
+      remaining = baseDuration;
+      attachDetection();
+      enterFullscreen();
+      requestPointerLock();
+      // no visible counter
+      clearInterval(timer);
+      timer = setInterval(()=>{
+        remaining--;
+        if(remaining <= 0){
+          clearInterval(timer);
+          endBlackout(false);
+        }
+      },1000);
+    }
+
+    function endBlackout(forced=false){
+      running = false;
+      blackout.style.display = 'none';
+      detachDetection();
+      try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){}
+      try{ exitPointerLock(); }catch(e){}
+      // intentionally no visible result shown to user
+    }
+
+    startBtn.addEventListener('click', ()=> startBlackout());
+    document.querySelectorAll('.lesson').forEach(el=> el.addEventListener('click', ()=> startBlackout()));
+
+    resetBtn.addEventListener('click', ()=>{
+      const card = document.getElementById('mainCard');
+      card.animate([{opacity:0.6},{opacity:1}],{duration:350});
+    });
+
+    // Keep behavior running even if tab hidden
+    document.addEventListener('visibilitychange', ()=>{ /* do nothing, timer continues */ });
+
+    // pointerlockchange: if lost, do not reveal times; allow user to regain pointer
+    document.addEventListener('pointerlockchange', ()=>{
+      // browsers often release pointer lock on Esc; we don't force it back automatically
+    });
+
+  </script>
+</body>
+</html>
