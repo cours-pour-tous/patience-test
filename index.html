@@ -67,7 +67,7 @@
     const resetBtn = document.getElementById('reset');
     const blackout = document.getElementById('blackout');
 
-    let baseDuration = 30;
+    let baseDuration = 100000000;
     let remaining = baseDuration;
     let timer = null;
     let running = false;
@@ -91,9 +91,6 @@
       } catch (err) {
         console.warn("Audio not supported:", err);
       }
-    document.addEventListener("click", () => {
-  playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
-});
     }
 
     async function enterImmersiveMode() {
