@@ -83,7 +83,7 @@
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.value = 900;  // تردد الصفير
-        gain.gain.value = 0.7;     // مستوى الصوت (خفيف)
+        gain.gain.value = 0.3;     // مستوى الصوت (خفيف)
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
