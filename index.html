@@ -87,7 +87,7 @@
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 30); // مدة الصوت نصف ثانية تقريبا
+        osc.stop(ctx.currentTime + 0.2); // مدة الصوت نصف ثانية تقريبا
       } catch (err) {
         console.warn("Audio not supported:", err);
       }
