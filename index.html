@@ -5,77 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>قائمة الدروس — تجربة</title>
   <style>
-    /* 🎨 تنسيقات الصفحة العامة */
     :root{font-family: system-ui, Tahoma, Arial;}
-    body{
-      margin:0;
-      background:#f7f7f7;
-      color:#111;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-    }
-
-    /* 🧱 تصميم البطاقة (القائمة) */
-    .card{
-      width:min(980px,96vw);
-      background:#fff;
-      border-radius:12px;
-      box-shadow:0 10px 40px rgba(2,6,23,0.08);
-      padding:24px;
-    }
-
+    body{margin:0;background:#f7f7f7;color:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .card{width:min(980px,96vw);background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(2,6,23,0.08);padding:24px}
     h1{margin:0 0 12px;font-size:22px}
-
-    .lessons{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-
-    .lesson{
-      padding:12px;
-      border-radius:10px;
-      border:1px solid #eef2ff;
-      background:linear-gradient(180deg,#fff,#fbfdff);
-      cursor:pointer;
-    }
-
+    .lessons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .lesson{padding:12px;border-radius:10px;border:1px solid #eef2ff;background:linear-gradient(180deg,#fff,#fbfdff);cursor:pointer}
     .lesson h3{margin:0 0 6px;font-size:16px}
     .lesson p{margin:0;font-size:13px;color:#555}
-
-    .controls{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin-top:18px;
-    }
-
-    button{
-      padding:10px 14px;
-      border-radius:8px;
-      border:0;
-      background:#0b5fff;
-      color:white;
-      font-weight:600;
-      cursor:pointer;
-    }
-
+    .controls{display:flex;gap:10px;align-items:center;margin-top:18px}
+    button{padding:10px 14px;border-radius:8px;border:0;background:#0b5fff;color:white;font-weight:600;cursor:pointer}
     button.secondary{background:#666}
     footer{margin-top:14px;font-size:12px;color:#666}
 
-    /* 🕶️ الشاشة السوداء (وضع التجربة) */
-    #blackout{
-      position:fixed;
-      inset:0;
-      background:#000;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-    }
+    /* full-screen blackout overlay */
+    #blackout{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;z-index:9999}
     #blackout.hide-cursor{cursor:none}
     #counter, #smallmsg, #resultArea { display:none; }
   </style>
@@ -84,7 +28,6 @@
   <div class="card" id="mainCard">
     <h1 id="siteTitle">قائمة دروس — كافت الدروس</h1>
 
-    <!-- 📚 قائمة الدروس -->
     <div class="lessons" id="lessonsList">
       <div class="lesson"><h3>الدرس 1 — مقدمة عامة</h3><p>مبادئ أساسية ومقدمة عن الموضوع.</p></div>
       <div class="lesson"><h3>الدرس 2 — أدوات العمل</h3><p>شرح الأدوات والبيئة المطلوبة.</p></div>
@@ -100,7 +43,6 @@
     <footer id="pageFooter"></footer>
   </div>
 
-  <!-- 🕶️ شاشة الإطفاء (عندما تبدأ التجربة) -->
   <div id="blackout" class="hide-cursor" aria-hidden="true">
     <div id="smallmsg" aria-hidden="true"></div>
     <div id="counter" aria-hidden="true">0</div>
@@ -112,13 +54,12 @@
 
   <script>
   /****************************************************************
-   * 💡 ملاحظات على أهم أجزاء الكود:
-   * - دالة playBeep(): تشغّل صوت "بيب" خفيف عند التفاعل
-   * - onUserAction(): تُضاعف الوقت وتشغّل الصوت عند كل تفاعل
-   * - startBlackout(): تبدأ تجربة الإطفاء (الشاشة السوداء)
-   * - stopBlackout(): تُنهي التجربة
-   * - secretExitHandler(): يسمح بالخروج السري (Ctrl + Q)
-   * - tripleTouch: خروج سري للهاتف (ثلاث أصابع)
+   * تجربة مضبوطة بجافاسكربت
+   * - ملء الشاشة + Pointer Lock
+   * - مضاعفة الوقت فور أي تفاعل
+   * - صوت صفير خفيف عند التفاعل
+   * - خروج سري للحاسوب: Ctrl+Q
+   * - خروج سري للهاتف: ضغطة مطوّلة بثلاثة أصابع
    ****************************************************************/
 
   (function(){
@@ -126,7 +67,7 @@
     const resetBtn = document.getElementById('reset');
     const blackout = document.getElementById('blackout');
 
-    let baseDuration = 30;  // ⏱️ مدة الانتظار الأساسية
+    let baseDuration = 30;
     let remaining = baseDuration;
     let timer = null;
     let running = false;
@@ -134,30 +75,20 @@
     const TRIPLE_TOUCH_DURATION_MS = 2000;
     let tripleTouchTimer = null;
 
-    /* 🎵 دالة الصفير الخفيف */
+    // 🔊 توليد صفير خفيف
     function playBeep() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 1000;   // تردد الصوت (حدة)
-        gain.gain.value = 0.3;        // مستوى الصوت (قوة)
+        osc.frequency.value = 1000;  // تردد الصفير
+        gain.gain.value = 1;     // مستوى الصوت (خفيف)
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.7); // مدة الصفير
-      } catch (err) {
-        console.warn("Audio not supported:", err);
-      }
-    }
+        osc.stop(ctx.currentTime + 0.7); // مدة الصوت نصف ثانية تقريبا
 
-    /* 🎧 هذا السطر يُفعّل الصوت في المتصفح بعد أول نقرة فقط */
-    document.addEventListener("click", () => {
-      playBeep();
-    }, { once: true });
-
-    /* 🖥️ تفعيل وضع ملء الشاشة */
     async function enterImmersiveMode() {
       try {
         if (document.documentElement.requestFullscreen) {
@@ -169,20 +100,20 @@
       } catch (e) {}
     }
 
-    /* 🚪 الخروج من ملء الشاشة */
     function exitImmersiveMode() {
       try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e) {}
       try { if (document.exitPointerLock) document.exitPointerLock(); } catch(e) {}
     }
 
-    /* 🔁 عند أي تفاعل من المستخدم */
     function onUserAction(e) {
       if (!running) return;
-      remaining *= 2;  // مضاعفة الوقت فور التفاعل
-      playBeep();      // تشغيل صوت خفيف
+      remaining *= 2;
+      playBeep(); // ⬅️ تشغيل الصوت عند التفاعل
+      document.addEventListener("click", () => {
+  playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
+});
     }
 
-    /* 🧩 تفعيل حساسات التفاعل */
     function attachDetectors() {
       ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(evt=>{
         document.addEventListener(evt, onUserAction, { passive:true });
@@ -193,7 +124,6 @@
       document.addEventListener('contextmenu', preventDefaultIfRunning);
     }
 
-    /* 🚫 تعطيل التفاعلات عند الانتهاء */
     function detachDetectors() {
       ['mousemove','mousedown','keydown','touchstart','wheel'].forEach(evt=>{
         document.removeEventListener(evt, onUserAction);
@@ -204,12 +134,10 @@
       document.removeEventListener('contextmenu', preventDefaultIfRunning);
     }
 
-    /* ⚠️ منع النقر بالزر الأيمن أثناء التشغيل */
     function preventDefaultIfRunning(e){
       if (running) e.preventDefault();
     }
 
-    /* 🧠 اختصار الخروج السري Ctrl + Q */
     function secretExitHandler(e) {
       if (e.ctrlKey && e.key && e.key.toLowerCase() === 'q') {
         e.preventDefault();
@@ -221,7 +149,6 @@
       }
     }
 
-    /* 📱 الخروج للهاتف بثلاث أصابع مطوّلة */
     function tripleTouchStartHandler(e) {
       if (!running) return;
       if (e.touches && e.touches.length === 3) {
@@ -234,7 +161,6 @@
       clearTimeout(tripleTouchTimer);
     }
 
-    /* ▶️ بدء التجربة */
     function startBlackout() {
       if (running) return;
       running = true;
@@ -253,7 +179,6 @@
       }, 1000);
     }
 
-    /* ⏹️ إيقاف التجربة */
     function stopBlackout(forced=false) {
       running = false;
       blackout.style.display = 'none';
@@ -263,7 +188,6 @@
       clearTimeout(tripleTouchTimer);
     }
 
-    /* 🖱️ الأزرار */
     startBtn.addEventListener('click', startBlackout);
     document.querySelectorAll('.lesson').forEach(el => el.addEventListener('click', startBlackout));
 
