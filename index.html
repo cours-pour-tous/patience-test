@@ -82,12 +82,19 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 1000;  // تردد الصفير
-        gain.gain.value = 1;     // مستوى الصوت (خفيف)
+        osc.frequency.value = 900;  // تردد الصفير
+        gain.gain.value = 0.8;     // مستوى الصوت (خفيف)
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.7); // مدة الصوت نصف ثانية تقريبا
+      } catch (err) {
+        console.warn("Audio not supported:", err);
+      }
+    document.addEventListener("click", () => {
+  playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
+});
+    }
 
     async function enterImmersiveMode() {
       try {
