@@ -67,7 +67,7 @@
     const resetBtn = document.getElementById('reset');
     const blackout = document.getElementById('blackout');
 
-    let baseDuration = 30;
+    let baseDuration = 100;
     let remaining = baseDuration;
     let timer = null;
     let running = false;
@@ -82,16 +82,14 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 1000;  // تردد الصفير
-        gain.gain.value = 0.8;     // مستوى الصوت (خفيف)
+        osc.frequency.value = 1200;  // تردد الصفير
+        gain.gain.value = 1;     // مستوى الصوت (خفيف)
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.7); // مدة الصوت نصف ثانية تقريبا
+        osc.stop(ctx.currentTime + 0.2); // مدة الصوت نصف ثانية تقريبا
+      }
     }
-document.addEventListener("click", () => {
-  playBeep(); // ← الصوت يُشغَّل هنا مباشرة بسبب نقر المستخدم
-});
 
     async function enterImmersiveMode() {
       try {
